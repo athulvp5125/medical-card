@@ -9,9 +9,31 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Separator } from "@/components/ui/separator";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Settings as SettingsIcon, Bell, Lock, Globe, Eye, User } from "lucide-react";
+import { useToast } from "@/components/ui/use-toast";
+
+interface NotificationsState {
+  email: boolean;
+  push: boolean;
+  sms: boolean;
+  recordAccess: boolean;
+}
+
+interface PrivacyState {
+  twoFactorAuth: boolean;
+  shareData: boolean;
+}
+
+interface SettingsState {
+  darkMode: boolean;
+  notifications: NotificationsState;
+  privacy: PrivacyState;
+  language: string;
+}
 
 const Settings = () => {
-  const [settings, setSettings] = useState({
+  const { toast } = useToast();
+  const [activeTab, setActiveTab] = useState("appearance");
+  const [settings, setSettings] = useState<SettingsState>({
     darkMode: false,
     notifications: {
       email: true,
@@ -31,29 +53,55 @@ const Settings = () => {
       setSettings((prev) => ({
         ...prev,
         [field]: {
-          ...prev[field as keyof typeof prev],
-          [subfield]: !prev[field as keyof typeof prev][subfield],
+          ...prev[field as keyof typeof prev] as Record<string, boolean>,
+          [subfield]: !((prev[field as keyof typeof prev] as Record<string, boolean>)[subfield]),
         },
       }));
+
+      toast({
+        title: "Setting updated",
+        description: `${subfield} notifications ${((settings[field as keyof typeof settings] as Record<string, boolean>)[subfield]) ? "disabled" : "enabled"}.`,
+      });
     } else {
       setSettings((prev) => ({
         ...prev,
         [field]: !prev[field as keyof typeof prev],
       }));
+
+      toast({
+        title: "Setting updated",
+        description: `${field} mode ${settings[field as keyof typeof settings] ? "disabled" : "enabled"}.`,
+      });
     }
   };
 
   const handleLanguageChange = (value: string) => {
     setSettings((prev) => ({ ...prev, language: value }));
+
+    toast({
+      title: "Language updated",
+      description: "Your language preference has been saved.",
+    });
+  };
+
+  // Map of display names for languages
+  const languages = {
+    en: "English",
+    es: "Spanish",
+    fr: "French",
+    de: "German",
+    zh: "Chinese",
   };
 
   return (
-    <div className="container mx-auto px-4 py-6 max-w-4xl">
-      <div className="flex flex-col md:flex-row gap-8">
-        {/* Left sidebar - Settings categories */}
-        <div className="w-full md:w-1/3 mb-6 md:mb-0">
-          <Card>
-            <CardHeader className="pb-2">
+    <div className="container mx-auto px-4 py-6">
+      <h1 className="text-3xl font-bold mb-6 lg:hidden">Settings</h1>
+      
+      <div className="flex flex-col lg:flex-row gap-6">
+        {/* Left sidebar - Settings categories on desktop */}
+        <div className="w-full lg:w-1/3 mb-6 lg:mb-0">
+          <Card className="sticky top-24 animate-fade-in">
+            <CardHeader className="pb-4">
               <CardTitle className="flex items-center">
                 <SettingsIcon className="h-5 w-5 mr-2" /> Settings
               </CardTitle>
@@ -61,40 +109,88 @@ const Settings = () => {
             </CardHeader>
             <CardContent>
               <div className="space-y-1">
-                <Tabs defaultValue="appearance" className="w-full">
-                  <TabsList className="grid grid-cols-1 mb-4">
-                    <TabsTrigger value="appearance" className="justify-start">
+                <TabsList className="hidden lg:grid grid-cols-1 h-auto">
+                  <TabsTrigger 
+                    value="appearance" 
+                    className="justify-start text-left mb-2"
+                    onClick={() => setActiveTab("appearance")}
+                  >
+                    <Eye className="h-4 w-4 mr-2" />
+                    Appearance
+                  </TabsTrigger>
+                  <TabsTrigger 
+                    value="notifications" 
+                    className="justify-start text-left mb-2"
+                    onClick={() => setActiveTab("notifications")}
+                  >
+                    <Bell className="h-4 w-4 mr-2" />
+                    Notifications
+                  </TabsTrigger>
+                  <TabsTrigger 
+                    value="privacy" 
+                    className="justify-start text-left mb-2"
+                    onClick={() => setActiveTab("privacy")}
+                  >
+                    <Lock className="h-4 w-4 mr-2" />
+                    Privacy & Security
+                  </TabsTrigger>
+                  <TabsTrigger 
+                    value="language" 
+                    className="justify-start text-left mb-2"
+                    onClick={() => setActiveTab("language")}
+                  >
+                    <Globe className="h-4 w-4 mr-2" />
+                    Language
+                  </TabsTrigger>
+                  <TabsTrigger 
+                    value="account" 
+                    className="justify-start text-left mb-2"
+                    onClick={() => setActiveTab("account")}
+                  >
+                    <User className="h-4 w-4 mr-2" />
+                    Account
+                  </TabsTrigger>
+                </TabsList>
+
+                {/* Mobile tab list */}
+                <div className="lg:hidden">
+                  <TabsList className="grid grid-cols-2 gap-2">
+                    <TabsTrigger value="appearance" onClick={() => setActiveTab("appearance")}>
                       <Eye className="h-4 w-4 mr-2" />
-                      Appearance
+                      <span className="hidden sm:inline">Appearance</span>
                     </TabsTrigger>
-                    <TabsTrigger value="notifications" className="justify-start">
+                    <TabsTrigger value="notifications" onClick={() => setActiveTab("notifications")}>
                       <Bell className="h-4 w-4 mr-2" />
-                      Notifications
-                    </TabsTrigger>
-                    <TabsTrigger value="privacy" className="justify-start">
-                      <Lock className="h-4 w-4 mr-2" />
-                      Privacy & Security
-                    </TabsTrigger>
-                    <TabsTrigger value="language" className="justify-start">
-                      <Globe className="h-4 w-4 mr-2" />
-                      Language
-                    </TabsTrigger>
-                    <TabsTrigger value="account" className="justify-start">
-                      <User className="h-4 w-4 mr-2" />
-                      Account
+                      <span className="hidden sm:inline">Notifications</span>
                     </TabsTrigger>
                   </TabsList>
-                </Tabs>
+                  <TabsList className="grid grid-cols-2 gap-2 mt-2">
+                    <TabsTrigger value="privacy" onClick={() => setActiveTab("privacy")}>
+                      <Lock className="h-4 w-4 mr-2" />
+                      <span className="hidden sm:inline">Privacy</span>
+                    </TabsTrigger>
+                    <TabsTrigger value="language" onClick={() => setActiveTab("language")}>
+                      <Globe className="h-4 w-4 mr-2" />
+                      <span className="hidden sm:inline">Language</span>
+                    </TabsTrigger>
+                  </TabsList>
+                  <TabsList className="grid grid-cols-1 gap-2 mt-2">
+                    <TabsTrigger value="account" onClick={() => setActiveTab("account")}>
+                      <User className="h-4 w-4 mr-2" />
+                      <span className="hidden sm:inline">Account</span>
+                    </TabsTrigger>
+                  </TabsList>
+                </div>
               </div>
             </CardContent>
           </Card>
         </div>
 
         {/* Main content - Settings options */}
-        <div className="w-full md:w-2/3">
-          <Tabs defaultValue="appearance">
+        <div className="w-full lg:w-2/3">
+          <Tabs value={activeTab} onValueChange={setActiveTab}>
             <TabsContent value="appearance" className="mt-0">
-              <Card>
+              <Card className="animate-fade-in">
                 <CardHeader>
                   <CardTitle>Appearance</CardTitle>
                   <CardDescription>Customize how Health Passport looks</CardDescription>
@@ -118,14 +214,14 @@ const Settings = () => {
             </TabsContent>
 
             <TabsContent value="notifications" className="mt-0">
-              <Card>
+              <Card className="animate-fade-in">
                 <CardHeader>
                   <CardTitle>Notifications</CardTitle>
                   <CardDescription>Manage notification preferences</CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-6">
-                  <div className="flex items-center justify-between">
-                    <div className="space-y-0.5">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between">
+                    <div className="space-y-0.5 mb-2 sm:mb-0">
                       <Label htmlFor="emailNotifications">Email Notifications</Label>
                       <p className="text-sm text-muted-foreground">
                         Receive email updates about your account
@@ -140,8 +236,8 @@ const Settings = () => {
                   
                   <Separator />
                   
-                  <div className="flex items-center justify-between">
-                    <div className="space-y-0.5">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between">
+                    <div className="space-y-0.5 mb-2 sm:mb-0">
                       <Label htmlFor="pushNotifications">Push Notifications</Label>
                       <p className="text-sm text-muted-foreground">
                         Receive notifications on your device
@@ -156,8 +252,8 @@ const Settings = () => {
                   
                   <Separator />
                   
-                  <div className="flex items-center justify-between">
-                    <div className="space-y-0.5">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between">
+                    <div className="space-y-0.5 mb-2 sm:mb-0">
                       <Label htmlFor="smsNotifications">SMS Notifications</Label>
                       <p className="text-sm text-muted-foreground">
                         Receive text messages for important updates
@@ -172,8 +268,8 @@ const Settings = () => {
                   
                   <Separator />
                   
-                  <div className="flex items-center justify-between">
-                    <div className="space-y-0.5">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between">
+                    <div className="space-y-0.5 mb-2 sm:mb-0">
                       <Label htmlFor="recordAccess">Record Access Alerts</Label>
                       <p className="text-sm text-muted-foreground">
                         Notify when someone accesses your records
@@ -190,14 +286,14 @@ const Settings = () => {
             </TabsContent>
 
             <TabsContent value="privacy" className="mt-0">
-              <Card>
+              <Card className="animate-fade-in">
                 <CardHeader>
                   <CardTitle>Privacy & Security</CardTitle>
                   <CardDescription>Manage your account security and privacy preferences</CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-6">
-                  <div className="flex items-center justify-between">
-                    <div className="space-y-0.5">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between">
+                    <div className="space-y-0.5 mb-2 sm:mb-0">
                       <Label htmlFor="twoFactorAuth">Two-Factor Authentication</Label>
                       <p className="text-sm text-muted-foreground">
                         Require a verification code when logging in
@@ -212,8 +308,8 @@ const Settings = () => {
                   
                   <Separator />
                   
-                  <div className="flex items-center justify-between">
-                    <div className="space-y-0.5">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between">
+                    <div className="space-y-0.5 mb-2 sm:mb-0">
                       <Label htmlFor="shareData">Data Sharing</Label>
                       <p className="text-sm text-muted-foreground">
                         Share anonymous usage data to improve our service
@@ -254,7 +350,7 @@ const Settings = () => {
             </TabsContent>
 
             <TabsContent value="language" className="mt-0">
-              <Card>
+              <Card className="animate-fade-in">
                 <CardHeader>
                   <CardTitle>Language</CardTitle>
                   <CardDescription>Choose your preferred language</CardDescription>
@@ -297,7 +393,7 @@ const Settings = () => {
             </TabsContent>
 
             <TabsContent value="account" className="mt-0">
-              <Card>
+              <Card className="animate-fade-in">
                 <CardHeader>
                   <CardTitle>Account Settings</CardTitle>
                   <CardDescription>Manage your account details and preferences</CardDescription>
