@@ -11,21 +11,8 @@ import Dashboard from "./components/dashboard/Dashboard";
 import EmergencyAccess from "./components/emergency/EmergencyAccess";
 import LoginForm from "./components/auth/LoginForm";
 import SignupForm from "./components/auth/SignupForm";
-
-// Create pages for routes we don't have components for yet
-const Profile = () => (
-  <div>
-    <h1 className="text-3xl font-bold mb-4">User Profile</h1>
-    <p className="text-muted-foreground">Profile page content coming soon.</p>
-  </div>
-);
-
-const Settings = () => (
-  <div>
-    <h1 className="text-3xl font-bold mb-4">Settings</h1>
-    <p className="text-muted-foreground">Settings page content coming soon.</p>
-  </div>
-);
+import Profile from "./pages/Profile";
+import Settings from "./pages/Settings";
 
 const queryClient = new QueryClient();
 
