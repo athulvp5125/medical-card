@@ -50,18 +50,33 @@ const Settings = () => {
 
   const handleToggle = (field: string, subfield?: string) => {
     if (subfield) {
-      setSettings((prev) => ({
-        ...prev,
-        [field]: {
-          ...prev[field as keyof typeof prev] as Record<string, boolean>,
-          [subfield]: !((prev[field as keyof typeof prev] as Record<string, boolean>)[subfield]),
-        },
-      }));
+      if (field === 'notifications') {
+        setSettings((prev) => ({
+          ...prev,
+          notifications: {
+            ...prev.notifications,
+            [subfield]: !prev.notifications[subfield as keyof NotificationsState],
+          },
+        }));
 
-      toast({
-        title: "Setting updated",
-        description: `${subfield} notifications ${((settings[field as keyof typeof settings] as Record<string, boolean>)[subfield]) ? "disabled" : "enabled"}.`,
-      });
+        toast({
+          title: "Setting updated",
+          description: `${subfield} notifications ${settings.notifications[subfield as keyof NotificationsState] ? "disabled" : "enabled"}.`,
+        });
+      } else if (field === 'privacy') {
+        setSettings((prev) => ({
+          ...prev,
+          privacy: {
+            ...prev.privacy,
+            [subfield]: !prev.privacy[subfield as keyof PrivacyState],
+          },
+        }));
+
+        toast({
+          title: "Setting updated",
+          description: `${subfield} ${settings.privacy[subfield as keyof PrivacyState] ? "disabled" : "enabled"}.`,
+        });
+      }
     } else {
       setSettings((prev) => ({
         ...prev,
@@ -109,77 +124,83 @@ const Settings = () => {
             </CardHeader>
             <CardContent>
               <div className="space-y-1">
-                <TabsList className="hidden lg:grid grid-cols-1 h-auto">
-                  <TabsTrigger 
-                    value="appearance" 
-                    className="justify-start text-left mb-2"
-                    onClick={() => setActiveTab("appearance")}
-                  >
-                    <Eye className="h-4 w-4 mr-2" />
-                    Appearance
-                  </TabsTrigger>
-                  <TabsTrigger 
-                    value="notifications" 
-                    className="justify-start text-left mb-2"
-                    onClick={() => setActiveTab("notifications")}
-                  >
-                    <Bell className="h-4 w-4 mr-2" />
-                    Notifications
-                  </TabsTrigger>
-                  <TabsTrigger 
-                    value="privacy" 
-                    className="justify-start text-left mb-2"
-                    onClick={() => setActiveTab("privacy")}
-                  >
-                    <Lock className="h-4 w-4 mr-2" />
-                    Privacy & Security
-                  </TabsTrigger>
-                  <TabsTrigger 
-                    value="language" 
-                    className="justify-start text-left mb-2"
-                    onClick={() => setActiveTab("language")}
-                  >
-                    <Globe className="h-4 w-4 mr-2" />
-                    Language
-                  </TabsTrigger>
-                  <TabsTrigger 
-                    value="account" 
-                    className="justify-start text-left mb-2"
-                    onClick={() => setActiveTab("account")}
-                  >
-                    <User className="h-4 w-4 mr-2" />
-                    Account
-                  </TabsTrigger>
-                </TabsList>
+                {/* Desktop tab list */}
+                <Tabs value={activeTab} onValueChange={setActiveTab} className="hidden lg:block">
+                  <TabsList className="grid grid-cols-1 h-auto">
+                    <TabsTrigger 
+                      value="appearance" 
+                      className="justify-start text-left mb-2"
+                    >
+                      <Eye className="h-4 w-4 mr-2" />
+                      Appearance
+                    </TabsTrigger>
+                    <TabsTrigger 
+                      value="notifications" 
+                      className="justify-start text-left mb-2"
+                    >
+                      <Bell className="h-4 w-4 mr-2" />
+                      Notifications
+                    </TabsTrigger>
+                    <TabsTrigger 
+                      value="privacy" 
+                      className="justify-start text-left mb-2"
+                    >
+                      <Lock className="h-4 w-4 mr-2" />
+                      Privacy & Security
+                    </TabsTrigger>
+                    <TabsTrigger 
+                      value="language" 
+                      className="justify-start text-left mb-2"
+                    >
+                      <Globe className="h-4 w-4 mr-2" />
+                      Language
+                    </TabsTrigger>
+                    <TabsTrigger 
+                      value="account" 
+                      className="justify-start text-left mb-2"
+                    >
+                      <User className="h-4 w-4 mr-2" />
+                      Account
+                    </TabsTrigger>
+                  </TabsList>
+                </Tabs>
 
                 {/* Mobile tab list */}
                 <div className="lg:hidden">
-                  <TabsList className="grid grid-cols-2 gap-2">
-                    <TabsTrigger value="appearance" onClick={() => setActiveTab("appearance")}>
-                      <Eye className="h-4 w-4 mr-2" />
-                      <span className="hidden sm:inline">Appearance</span>
-                    </TabsTrigger>
-                    <TabsTrigger value="notifications" onClick={() => setActiveTab("notifications")}>
-                      <Bell className="h-4 w-4 mr-2" />
-                      <span className="hidden sm:inline">Notifications</span>
-                    </TabsTrigger>
-                  </TabsList>
-                  <TabsList className="grid grid-cols-2 gap-2 mt-2">
-                    <TabsTrigger value="privacy" onClick={() => setActiveTab("privacy")}>
-                      <Lock className="h-4 w-4 mr-2" />
-                      <span className="hidden sm:inline">Privacy</span>
-                    </TabsTrigger>
-                    <TabsTrigger value="language" onClick={() => setActiveTab("language")}>
-                      <Globe className="h-4 w-4 mr-2" />
-                      <span className="hidden sm:inline">Language</span>
-                    </TabsTrigger>
-                  </TabsList>
-                  <TabsList className="grid grid-cols-1 gap-2 mt-2">
-                    <TabsTrigger value="account" onClick={() => setActiveTab("account")}>
-                      <User className="h-4 w-4 mr-2" />
-                      <span className="hidden sm:inline">Account</span>
-                    </TabsTrigger>
-                  </TabsList>
+                  <Tabs value={activeTab} onValueChange={setActiveTab}>
+                    <TabsList className="grid grid-cols-2 gap-2">
+                      <TabsTrigger value="appearance">
+                        <Eye className="h-4 w-4 mr-2" />
+                        <span className="hidden sm:inline">Appearance</span>
+                      </TabsTrigger>
+                      <TabsTrigger value="notifications">
+                        <Bell className="h-4 w-4 mr-2" />
+                        <span className="hidden sm:inline">Notifications</span>
+                      </TabsTrigger>
+                    </TabsList>
+                  </Tabs>
+                  
+                  <Tabs value={activeTab} onValueChange={setActiveTab} className="mt-2">
+                    <TabsList className="grid grid-cols-2 gap-2">
+                      <TabsTrigger value="privacy">
+                        <Lock className="h-4 w-4 mr-2" />
+                        <span className="hidden sm:inline">Privacy</span>
+                      </TabsTrigger>
+                      <TabsTrigger value="language">
+                        <Globe className="h-4 w-4 mr-2" />
+                        <span className="hidden sm:inline">Language</span>
+                      </TabsTrigger>
+                    </TabsList>
+                  </Tabs>
+                  
+                  <Tabs value={activeTab} onValueChange={setActiveTab} className="mt-2">
+                    <TabsList className="grid grid-cols-1 gap-2">
+                      <TabsTrigger value="account">
+                        <User className="h-4 w-4 mr-2" />
+                        <span className="hidden sm:inline">Account</span>
+                      </TabsTrigger>
+                    </TabsList>
+                  </Tabs>
                 </div>
               </div>
             </CardContent>
